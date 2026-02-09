@@ -1,56 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V-Call - Guest Join</title>
+    <title>V-Call Guest</title>
     <style>
-        body { background: #121212; color: white; font-family: Arial; text-align: center; }
-        #video-container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
-        video { width: 90%; max-width: 640px; border-radius: 10px; border: 2px solid #2980B9; background: black; }
-        #return-feed { position: absolute; bottom: 80px; right: 20px; width: 150px; border: 2px solid #27AE60; }
-        .controls { margin-top: 20px; }
-        button { padding: 10px 20px; cursor: pointer; background: #27AE60; color: white; border: none; border-radius: 5px; }
-        footer { margin-top: 50px; font-size: 12px; color: #555; }
+        body { background: black; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
+        video { width: 100%; height: auto; border: 2px solid #27AE60; border-radius: 8px; }
+        #startBtn { padding: 20px; font-size: 20px; background: #27AE60; color: white; cursor: pointer; border: none; border-radius: 5px; }
     </style>
 </head>
 <body>
-
-    <h1>V-Call Guest Portal</h1>
-    <p>Transforming Calls into Solutions</p>
-
-    <div id="video-container">
-        <video id="localVideo" autoplay playsinline muted></video>
-        
-        <video id="return-feed" autoplay playsinline></video>
-    </div>
-
-    <div class="controls">
-        <button onclick="startCall()">Join V-Call</button>
-        <button onclick="toggleMute()" style="background:#E74C3C">Mute Mic</button>
-    </div>
-
-    <footer>
-        Developed by Avinash Sarkar | Coding by Gemini
-    </footer>
+    <button id="startBtn" onclick="startCamera()">CLICK TO ACTIVATE VIDEO</button>
+    <video id="localVideo" autoplay playsinline muted style="display:none;"></video>
+    <div style="position:fixed; bottom:10px; font-size:12px;">Developer: Avinash Sarkar | Coding by Gemini</div>
 
     <script>
-        let localStream;
-
-        async function startCall() {
+        async function startCamera() {
             try {
-                // Request Camera and Mic
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('localVideo').srcObject = localStream;
-                console.log("Camera started successfully.");
-                // Yahan WebRTC Signaling ka logic aayega vMix se connect hone ke liye
-            } catch (error) {
-                alert("Please allow camera and mic permissions!");
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                const video = document.getElementById('localVideo');
+                video.srcObject = stream;
+                video.style.display = "block";
+                document.getElementById('startBtn').style.display = "none";
+            } catch (err) {
+                alert("Camera Error: " + err);
             }
-        }
-
-        function toggleMute() {
-            localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
         }
     </script>
 </body>
