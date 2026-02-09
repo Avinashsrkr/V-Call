@@ -1,29 +1,22 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <style>
-        body { background: black; margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        video { width: 100%; height: 100%; object-fit: cover; border: 2px solid #27AE60; }
-        #msg { color: white; font-family: Arial; position: absolute; }
-    </style>
-</head>
-<body>
-    <div id="msg">CONNECTING TO V-CALL...</div>
-    <video id="v" autoplay playsinline muted></video>
-
+<body style="background:black; margin:0; display:flex; align-items:center; justify-content:center; height:100vh;">
+    <div id="status" style="color:white; font-family:Arial;">V-CALL CONNECTING...</div>
+    <video id="v" autoplay playsinline muted style="width:100%; height:100%; display:none;"></video>
     <script>
-        // vMix Dashboard mein auto-load karne ke liye permission check
-        async function init() {
+        async function start() {
             try {
                 const s = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
-                document.getElementById('v').srcObject = s;
-                document.getElementById('msg').style.display = "none";
+                const v = document.getElementById('v');
+                v.srcObject = s;
+                v.style.display = "block";
+                document.getElementById('status').style.display = "none";
+                v.play(); // vMix ko force play command
             } catch(e) {
-                document.getElementById('msg').innerText = "CAMERA BLOCKED - PLEASE CHECK vMIX PERMISSIONS";
+                document.getElementById('status').innerText = "ERROR: CHECK vMIX CAMERA PERMISSIONS";
             }
         }
-        // Auto-run on load
-        window.onload = init;
+        window.onload = start;
     </script>
 </body>
 </html>
