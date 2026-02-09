@@ -1,33 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>V-Call Join Session</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-Call Guest Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #0b0b0b; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .card { background: #1a1a1a; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 90%; max-width: 400px; }
-        input { width: 100%; padding: 12px; margin: 20px 0; border-radius: 5px; border: 1px solid #333; background: #222; color: white; }
-        button { width: 100%; padding: 15px; background: #2980B9; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; }
+        body { margin: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* Main Video Area */
+        #video-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; background: black; }
+        video { width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); /* Mirror effect */ }
+        
+        /* Info Overlay */
+        #slot-info { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; font-size: 14px; pointer-events: none; }
+        
+        /* Name Input Overlay */
+        #login-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        input { padding: 15px; width: 80%; max-width: 300px; border-radius: 8px; border: 1px solid #444; background: #222; color: white; margin-bottom: 20px; font-size: 16px; }
+        button.join-btn { padding: 15px 40px; background: #2980B9; color: white; border: none; border-radius: 30px; font-size: 18px; cursor: pointer; transition: 0.3s; }
+        button.join-btn:hover { background: #3498DB; }
+
+        /* Bottom Control Bar (Zoom Style) */
+        #controls { height: 80px; background: #1E1E1E; display: flex; justify-content: center; align-items: center; gap: 30px; }
+        .btn-control { width: 50px; height: 50px; border-radius: 50%; border: none; background: #333; color: white; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
+        .btn-control:hover { background: #555; }
+        .btn-danger { background: #C0392B; }
+        .btn-danger:hover { background: #E74C3C; }
+        
+        /* Mute/Off States */
+        .off { background: #C0392B !important; position: relative; }
+        .off::after { content: '/'; position: absolute; font-size: 28px; }
     </style>
 </head>
 <body>
-    <div class="card" id="login">
-        <h1 style="color:#2980B9">V-CALL</h1>
-        <p>Enter your name to join the call</p>
-        <input type="text" id="name" placeholder="Full Name">
-        <button onclick="join()">JOIN NOW</button>
+
+    <div id="login-overlay">
+        <h2 style="color:#2980B9; margin-bottom:10px;">V-CALL XPERT</h2>
+        <p style="color:gray; margin-bottom:30px;">You are joining a Live Production</p>
+        <input type="text" id="guestName" placeholder="Enter Your Name">
+        <button class="join-btn" onclick="startCall()">JOIN MEETING</button>
     </div>
-    <video id="v" autoplay playsinline muted style="display:none; width:100%; border-radius: 10px;"></video>
+
+    <div id="video-container">
+        <div id="slot-info"><i class="fas fa-circle" style="color:red; font-size:10px;"></i> LIVE | <span id="display-name">Guest</span></div>
+        <video id="localVideo" autoplay playsinline muted></video>
+    </div>
+
+    <div id="controls">
+        <button class="btn-control" id="btn-audio" onclick="toggleAudio()"><i class="fas fa-microphone"></i></button>
+        <button class="btn-control" id="btn-video" onclick="toggleVideo()"><i class="fas fa-video"></i></button>
+        <button class="btn-control btn-danger" onclick="leaveCall()"><i class="fas fa-phone-slash"></i></button>
+    </div>
 
     <script>
-        async function join() {
-            const userName = document.getElementById('name').value;
-            if(!userName) return alert("Please enter your name");
-            const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-            document.getElementById('v').srcObject = stream;
-            document.getElementById('login').style.display = 'none';
-            document.getElementById('v').style.display = 'block';
-            // Send Name to vMix logic here
+        let localStream;
+        
+        // URL se Slot ID nikalna
+        const urlParams = new URLSearchParams(window.location.search);
+        const slotID = urlParams.get('slot') || 'GUEST';
+
+        async function startCall() {
+            const name = document.getElementById('guestName').value;
+            if(!name) return alert("Please enter your name");
+            
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+                document.getElementById('display-name').innerText = `${name} (Slot: ${slotID})`;
+                document.getElementById('login-overlay').style.display = 'none';
+            } catch(err) {
+                alert("Camera Access Denied! Please allow permissions.");
+            }
+        }
+
+        function toggleAudio() {
+            const audioTrack = localStream.getAudioTracks()[0];
+            if (audioTrack.enabled) {
+                audioTrack.enabled = false;
+                document.getElementById('btn-audio').classList.add('off');
+            } else {
+                audioTrack.enabled = true;
+                document.getElementById('btn-audio').classList.remove('off');
+            }
+        }
+
+        function toggleVideo() {
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (videoTrack.enabled) {
+                videoTrack.enabled = false;
+                document.getElementById('btn-video').classList.add('off');
+            } else {
+                videoTrack.enabled = true;
+                document.getElementById('btn-video').classList.remove('off');
+            }
+        }
+
+        function leaveCall() {
+            window.location.reload();
         }
     </script>
 </body>
