@@ -1,22 +1,38 @@
 <!DOCTYPE html>
-<html>
-<body style="background:black; margin:0; display:flex; align-items:center; justify-content:center; height:100vh;">
-    <div id="status" style="color:white; font-family:Arial;">V-CALL CONNECTING...</div>
-    <video id="v" autoplay playsinline muted style="width:100%; height:100%; display:none;"></video>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-Call Guest</title>
+    <style>
+        body { background: black; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: Arial; }
+        video { width: 100%; height: 100%; object-fit: cover; border: 2px solid #27AE60; border-radius: 8px; }
+        #status { position: absolute; z-index: 10; font-weight: bold; }
+        #activateBtn { padding: 15px 30px; background: #27AE60; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 18px; z-index: 20; }
+    </style>
+</head>
+<body>
+    <div id="status">V-CALL: WAITING FOR PERMISSION...</div>
+    <button id="activateBtn" onclick="startCall()">ACTIVATE CAMERA</button>
+    <video id="v" autoplay playsinline muted style="display:none;"></video>
+
     <script>
-        async function start() {
+        async function startCall() {
             try {
-                const s = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
-                const v = document.getElementById('v');
-                v.srcObject = s;
-                v.style.display = "block";
+                // vMix Browser compatibility logic
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                const video = document.getElementById('v');
+                video.srcObject = stream;
+                video.style.display = "block";
+                document.getElementById('activateBtn').style.display = "none";
                 document.getElementById('status').style.display = "none";
-                v.play(); // vMix ko force play command
-            } catch(e) {
-                document.getElementById('status').innerText = "ERROR: CHECK vMIX CAMERA PERMISSIONS";
+            } catch (err) {
+                document.getElementById('status').innerText = "ERROR: Camera Blocked. Check vMix Permissions.";
+                console.error(err);
             }
         }
-        window.onload = start;
+        // Auto-attempt for modern browsers
+        window.onload = () => { setTimeout(startCall, 1000); };
     </script>
 </body>
 </html>
